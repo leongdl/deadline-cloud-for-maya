@@ -74,19 +74,49 @@ def are_asset_references_similar(
 ):
     """
     Helper function that asserts that asset reference values in the job bundle are what's expected.
+    Supports wildcard patterns in expected filenames using '*' as a wildcard character.
     """
+    import fnmatch
+    
     with open(job_history_dir / ASSET_REFERENCES) as actual:
         actual_asset_reference = yaml.safe_load(actual)
-        # We don't care what order the filenames list is in, so turn it into a set for easier comparison.
-        # Compare the lengths before we turn it into a set so that we can cover the case of duplicate assets.
-        assert len(actual_asset_reference["assetReferences"]["inputs"]["filenames"]) == len(
-            expected_asset_references["assetReferences"]["inputs"]["filenames"]
-        )
-        actual_asset_reference["assetReferences"]["inputs"]["filenames"] = set(
-            actual_asset_reference["assetReferences"]["inputs"]["filenames"]
-        )
+        
+        # Get the actual filenames as a list
+        actual_filenames = actual_asset_reference["assetReferences"]["inputs"]["filenames"]
+        expected_filenames = list(expected_asset_references["assetReferences"]["inputs"]["filenames"])
+        
+        # Check if we have the right number of files (excluding wildcards)
+        non_wildcard_expected = [f for f in expected_filenames if '*' not in f]
+        
+        # For each expected filename with a wildcard, check if there's a match in the actual filenames
+        matched_actual_files = set()
+        for expected_file in expected_filenames:
+            if '*' in expected_file:
+                # This is a wildcard pattern
+                found_match = False
+                for actual_file in actual_filenames:
+                    if fnmatch.fnmatch(actual_file, expected_file):
+                        matched_actual_files.add(actual_file)
+                        found_match = True
+                
+                assert found_match, f"No match found for wildcard pattern '{expected_file}' in actual files"
+            else:
+                # This is a regular file path
+                assert expected_file in actual_filenames, f"Expected file '{expected_file}' not found in actual files"
+                matched_actual_files.add(expected_file)
+        
+        # All non-wildcard files must be matched exactly
+        for file in non_wildcard_expected:
+            assert file in actual_filenames, f"Expected file '{file}' not found in actual files"
+        
+        # For comparison purposes, replace the actual filenames with the expected ones
+        # This allows the rest of the comparison to work as before
+        actual_asset_reference["assetReferences"]["inputs"]["filenames"] = set(expected_filenames)
+        
+        # Handle Windows path format for directories
         directories = expected_asset_references["assetReferences"]["outputs"]["directories"]
         expected_asset_references["assetReferences"]["outputs"]["directories"] = [
             d.replace("\\", "/") for d in directories
         ]
+        
         assert actual_asset_reference == expected_asset_references

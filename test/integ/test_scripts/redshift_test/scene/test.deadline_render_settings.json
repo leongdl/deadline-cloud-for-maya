@@ -1,0 +1,10 @@
+{
+ "name": "test.ma",
+ "description": "",
+ "override_frame_range": true,
+ "frame_list": "1",
+ "input_filenames": [],
+ "input_directories": [],
+ "output_directories": [],
+ "include_adaptor_wheels": false
+}

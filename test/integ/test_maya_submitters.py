@@ -193,7 +193,10 @@ class TestSubmitters:
             "assetReferences": {
                 "inputs": {
                     "directories": [],
-                    "filenames": {str(scene_location)},
+                    "filenames": {
+                        str(scene_location),
+                        # "*/OCIO-configs/*/config.ocio"  # Wildcard pattern for config.ocio
+                    },
                 },
                 "outputs": {
                     "directories": [str(output_path)],
