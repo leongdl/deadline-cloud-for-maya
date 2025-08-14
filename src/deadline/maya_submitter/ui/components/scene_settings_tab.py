@@ -123,17 +123,24 @@ class SceneSettingsWidget(QWidget):
         lyt.addWidget(QLabel("Cameras"), 3, 0)
         lyt.addWidget(self.cameras_box, 3, 1)
 
+        self.render_quality_box = QComboBox(self)
+        render_quality_items = ["Low", "Medium", "High", "Ultra"]
+        for quality in render_quality_items:
+            self.render_quality_box.addItem(quality, quality)
+        lyt.addWidget(QLabel("Render Quality"), 4, 0)
+        lyt.addWidget(self.render_quality_box, 4, 1)
+
         self.frame_override_chck = QCheckBox("Override Frame Range", self)
         self.frame_override_txt = QLineEdit(self)
-        lyt.addWidget(self.frame_override_chck, 4, 0)
-        lyt.addWidget(self.frame_override_txt, 4, 1)
+        lyt.addWidget(self.frame_override_chck, 5, 0)
+        lyt.addWidget(self.frame_override_txt, 5, 1)
         self.frame_override_chck.stateChanged.connect(self.activate_frame_override_changed)
 
         if self.developer_options:
             self.include_adaptor_wheels = QCheckBox(
                 "Developer Option: Include Adaptor Wheels", self
             )
-            lyt.addWidget(self.include_adaptor_wheels, 5, 0)
+            lyt.addWidget(self.include_adaptor_wheels, 6, 0)
 
         lyt.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding), 10, 0)
 
@@ -173,6 +180,10 @@ class SceneSettingsWidget(QWidget):
         if index >= 0:
             self.cameras_box.setCurrentIndex(index)
 
+        index = self.render_quality_box.findData(settings.render_quality)
+        if index >= 0:
+            self.render_quality_box.setCurrentIndex(index)
+
         if self.developer_options:
             self.include_adaptor_wheels.setChecked(settings.include_adaptor_wheels)
 
@@ -189,6 +200,7 @@ class SceneSettingsWidget(QWidget):
 
         settings.render_layer_selection = self.layers_box.currentData()
         settings.camera_selection = self.cameras_box.currentData()
+        settings.render_quality = self.render_quality_box.currentData()
 
         if self.developer_options:
             settings.include_adaptor_wheels = self.include_adaptor_wheels.isChecked()
