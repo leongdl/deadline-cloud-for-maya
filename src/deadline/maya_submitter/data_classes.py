@@ -37,6 +37,9 @@ class RenderSubmitterUISettings:
     current_layer_selectable_cameras: list[str] = field(default_factory=lambda: [ALL_CAMERAS])
     camera_selection: str = field(default=ALL_CAMERAS)
 
+    # Custom render quality parameter
+    render_quality: str = field(default="Medium", metadata={"sticky": True})
+
     # developer options
     include_adaptor_wheels: bool = field(default=False, metadata={"sticky": True})
 

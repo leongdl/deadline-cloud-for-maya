@@ -244,12 +244,31 @@ def _get_job_template(
         # If a specific camera is selected, link to the Camera parameter
         if settings.camera_selection != ALL_CAMERAS:
             init_data["data"] += "camera: '{{Param.Camera}}'\n"
+        
+        # Add your custom parameter to the step environment
+        init_data["data"] += "render_quality: '{{Param.RenderQuality}}'\n"
 
         # If the renderer is Arnold, add specific parameters for it
         if layer_data.renderer_name == "arnold":
             init_data[
                 "data"
             ] += "error_on_arnold_license_fail: {{Param.ArnoldErrorOnLicenseFailure}}\n"
+
+    # Add your custom parameter
+    job_template["parameterDefinitions"].append(
+        {
+            "name": "RenderQuality",
+            "type": "STRING",
+            "userInterface": {
+                "control": "DROPDOWN_LIST",
+                "label": "Render Quality",
+                "groupLabel": "Maya Settings",
+            },
+            "description": "Select the render quality level.",
+            "default": "Medium",
+            "allowedValues": ["Low", "Medium", "High", "Ultra"],
+        }
+    )
 
     # If Arnold is one of the renderers, add Arnold-specific parameters
     if "arnold" in renderers:
@@ -391,6 +410,12 @@ def _get_parameter_values(
             "value": "true" if render_setup_include_all_lights() else "false",
         }
     )
+
+    # Add your custom parameter value
+    parameter_values.append({
+        "name": "RenderQuality",
+        "value": settings.render_quality
+    })
 
     # Set the Arnold-specific parameter values
     if "arnold" in renderers:
