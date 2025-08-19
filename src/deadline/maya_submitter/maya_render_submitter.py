@@ -240,6 +240,7 @@ def _get_job_template(
             + "image_height: {{Param."
             + (layer_data.image_height_parameter_name or "ImageHeight")
             + "}}\n"
+            + "cache_pathmapping: true\n"
         )
         # If a specific camera is selected, link to the Camera parameter
         if settings.camera_selection != ALL_CAMERAS:
@@ -685,7 +686,6 @@ def show_maya_render_submitter(
     auto_detected_attachments = AssetReferences()
     introspector = AssetIntrospector()
     print(f"Asset introspector initialized at {time.time()}")
-
     update_progress("Analyzing scene assets...")
     scene_assets = list(introspector.parse_scene_assets(progress_callback=update_progress))
     total_assets = len(scene_assets)
@@ -695,19 +695,27 @@ def show_maya_render_submitter(
     progress_dialog.setValue(0)
 
     # Process assets with progress updates
-    processed_assets = set()
+    processed_files = set()
+    processed_directories = set()
     print(f"Starting to process {total_assets} scene assets...")
 
     for i, asset_path in enumerate(scene_assets):
         progress_dialog.setValue(i)
-        processed_assets.add(os.path.normpath(asset_path))
+        normalized = os.path.normpath(asset_path)
+        if not os.path.exists(normalized):
+            continue
+        if os.path.isdir(normalized):
+            processed_directories.add(normalized)
+        else:
+            processed_files.add(normalized)
         # Process in larger batches to improve performance - refresh UI every 100 assets
         if i % 100 == 0 and i > 0:
             print(f"Processed {i+1}/{total_assets} assets at {time.time()}")
             update_progress(f"Processed {i+1}/{total_assets} assets")
 
     progress_dialog.setValue(total_assets)
-    auto_detected_attachments.input_filenames = processed_assets
+    auto_detected_attachments.input_filenames = processed_files
+    auto_detected_attachments.input_directories = processed_directories
     print(f"All {total_assets} assets processed at {time.time()}")
     update_progress(f"All {total_assets} assets processed")
 
